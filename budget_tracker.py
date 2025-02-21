@@ -1,66 +1,103 @@
-expenses = []
-expense1 = {'amount': '51.00', 'category': 'shirt'}
-expenses.append(expense1)
-expense2 = {'amount': '21.00', 'category': 'food'}
-expenses.append(expense2)
+from expenses import Expense
+import datetime
+import calendar
 
-def removeExpense():
-    while  True:
-        listExpenses()
-        print("What expense would you like to take off.")
-        try:
-            expenseToRemove = int(input("> "))
-            del expenses[expenseToRemove]
-            break
-        except:
-            print("Invalid input.")
+def main():
+    print("Welcome to the Budget Tracker!")
+    budget = 2000
+    expense_file_path = "expenses.csv"
 
-def addExpense(amount, category):
-    expense = {'amount': amount,'category': category}
-    expenses.append(expense)
+    # Get user input for expense.
+    expense = get_expense()
 
-def printMenu():
-    print("Please choose from one of the following options")
-    print("1. Add a new expense.")
-    print("2. Remove an expense.")
-    print("3. List all expenses.")
+    # Write their expense to a file.
+    save_expense_file(expense, expense_file_path)
 
-def listExpenses():
-    print("/n Here is a list of your expenses...")
-    print("----------------------------")
-    counter = 0
+    #remove an expense
+    #remove_expense(expense_file_path)
+
+
+    #read file and summarize expenses.
+    summarize_expense(expense_file_path, budget )
+    
+
+def get_expense():
+    print("Getting user expense.")
+    expense_name= input("Enter the expense name: ")
+    expense_amount = float(input("Enter the amount: "))
+    
+
+    expense_category = ["Food", "Rent", "Work", "Fun","Subscriptions"]
+    while True:
+        print("Select a category: ")
+        for i, category_name in enumerate(expense_category):
+            print(f" {i + 1}. {category_name}")
+        
+        value_range = f"[1 - {len(expense_category)}]"
+        selected_index = int(input(f"Enter a category number{value_range}:")) - 1
+
+
+        if selected_index in range(len(expense_category)):
+            selected_category = expense_category[selected_index]
+            new_expense = Expense(name=expense_name, amount=expense_amount, category=selected_category)
+
+            return new_expense
+        else:
+            print("Invalid category number. Please try again.")
+   
+
+
+def save_expense_file(expense: Expense, expense_file_path):
+    print("Saving User expense: {expense} to {expense_file_path}")
+    with open(expense_file_path, "a")as f:
+        f.write(f"{expense.name},{expense.amount},{expense.category}\n")
+    
+
+def summarize_expense(expense_file_path, budget):
+    print("Summarizing expenses")
+    expenses : list[Expense] = []
+    with open(expense_file_path, "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            expense_name, expense_amount, expense_category = line_elements = line.strip().split(",")
+            line_expense = Expense(name=expense_name, amount=float(expense_amount), category=expense_category)
+            expenses.append(line_expense)
+    
+
+    amount_by_category = {}
     for expense in expenses:
-        print("#", counter," - ", expense['amount'], " - ", expense['category'])
-        counter += 1
-    print("/n /n")
+       key = expense.category
+       if key in amount_by_category:
+            amount_by_category[key] += expense.amount
+       else:
+            amount_by_category[key] = expense.amount 
+    
+    
+    print("Expenses by category:")
+    for key, amount in amount_by_category.items():
+        print(f"{key}: ${amount:.2f}")
+    
+    total_spent = sum(expense.amount for expense in expenses)
+    print(f"Total spent: ${total_spent:.2f} this month!")
+
+    remaining_budget = budget - total_spent
+    if remaining_budget > 0:
+        print(f"Remaining Budget: ${remaining_budget:.2f}")
+    else:
+        print(f"Over Budget by ${remaining_budget:.2f}")
+
+    now = datetime.datetime.now()
+
+    days_in_month = calendar.monthrange(now.year, now.month)[1]
+
+    remaining_days = days_in_month - now.day
+
+    daily_budget = remaining_budget / remaining_days
+    print(green(f"Daily Budget: ${daily_budget:.2f}"))
+
+def green(text):
+    return f"\033[92m{text}\033[0m"   
+ 
 
 if __name__ == "__main__":
-    while True:
-        ### Promp the user
-        printMenu()
-        optionSelected = input("> ")
-
-        if optionSelected == "1":
-            print("How much was this expense?")
-            while True:
-                try:
-                    amountToadd = input("> ")
-                    break
-                except:
-                    print("Invalid input.")
-
-            print("What category was this expense?")
-            while True:
-                try:
-                    category = input("> ")
-                    break
-                except:
-                    print("Invalid input.")
-
-            addExpense(amountToadd, category)
-        elif optionSelected == "2":
-            removeExpense()
-        elif optionSelected == "3":
-            listExpenses()
-        else:
-            print("Invalid input.")
+    main()
