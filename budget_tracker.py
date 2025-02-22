@@ -7,14 +7,17 @@ def main():
     budget = 2000
     expense_file_path = "expenses.csv"
 
+
+    #Remove an expense.
+    remove_expense(expense_file_path)
+
     # Get user input for expense.
     expense = get_expense()
 
     # Write their expense to a file.
     save_expense_file(expense, expense_file_path)
 
-    #remove an expense
-    #remove_expense(expense_file_path)
+    
 
 
     #read file and summarize expenses.
@@ -22,7 +25,7 @@ def main():
     
 
 def get_expense():
-    print("Getting user expense.")
+
     expense_name= input("Enter the expense name: ")
     expense_amount = float(input("Enter the amount: "))
     
@@ -51,7 +54,24 @@ def save_expense_file(expense: Expense, expense_file_path):
     print("Saving User expense: {expense} to {expense_file_path}")
     with open(expense_file_path, "a")as f:
         f.write(f"{expense.name},{expense.amount},{expense.category}\n")
+
+
+def remove_expense(expense_file_path):
+    remove_question = input("Do you want to remove an expense? (y/n): ")
+    if remove_question == "y":
+        expense_name = input("Enter the expense name to remove: ")
+
+        with open(expense_file_path, "r") as f:
+            lines = f.readlines()
     
+        with open(expense_file_path, "w") as f:
+            for line in lines:
+                if expense_name not in line:
+                    f.write(line)
+        print(f"Removed {expense_name} from expenses")
+    else:
+        pass
+ 
 
 def summarize_expense(expense_file_path, budget):
     print("Summarizing expenses")
@@ -97,6 +117,10 @@ def summarize_expense(expense_file_path, budget):
 
 def green(text):
     return f"\033[92m{text}\033[0m"   
+
+
+
+
  
 
 if __name__ == "__main__":
